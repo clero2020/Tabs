@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Tabs
+Exec=tabs
+Icon=org.clero.tabs
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=GTK;
+StartupNotify=true
+DBusActivatable=true

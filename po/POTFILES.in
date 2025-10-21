@@ -1,0 +1,8 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+data/org.clero.tabs.desktop.in
+data/org.clero.tabs.metainfo.xml.in
+data/org.clero.tabs.gschema.xml
+src/main.py
+src/window.py
+src/window.ui
