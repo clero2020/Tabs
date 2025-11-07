@@ -54,7 +54,7 @@ class TabsApplication(Adw.Application):
             application_name='Tabs',
             application_icon='org.clero.tabs',
             developer_name='Clero',
-            version='0.1.1',
+            version='0.1.2',
             developers=['Clero'],
             copyright='© 2025 Clero'
         )

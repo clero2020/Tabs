@@ -34,16 +34,20 @@ class TabsWindow(Adw.ApplicationWindow):
 
     play_pause_button = Gtk.Template.Child()
     speed_scale = Gtk.Template.Child()
-    # L'ID 'chords_scrolled_window' doit être défini dans le .ui autour de lyrics_view
     chords_scrolled_window = Gtk.Template.Child()
     controls_box = Gtk.Template.Child()
 
+    # NOUVELLES LIAISONS
+    leaflet = Gtk.Template.Child()
+    chords_view_overlay = Gtk.Template.Child()
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # ========== STACK ==========
+        # ========== STACK & LEAFLET ==========
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.stack.set_transition_duration(400)
-        self.stack.connect("notify::visible-child", self.on_visible_child_changed)
+        # MODIFICATION: Connecter au leaflet au lieu du stack
+        self.leaflet.connect("notify::visible-child", self.on_leaflet_visible_child_changed)
 
         # ========== SEARCH CONNECTIONS ==========
         # Connect pressing Enter in the search entry
@@ -316,7 +320,8 @@ class TabsWindow(Adw.ApplicationWindow):
     def on_play_pause_clicked(self, button):
         """Bascule entre lecture et pause."""
         # Ne rien faire si nous ne sommes pas sur la page des accords
-        if self.stack.get_visible_child_name() != "chords":
+        # MODIFICATION: Vérifier l'enfant visible du leaflet
+        if self.leaflet.get_visible_child() != self.chords_view_overlay:
             return
 
         if self.scroll_timeout_id is None:
@@ -479,7 +484,9 @@ class TabsWindow(Adw.ApplicationWindow):
                 return
             self.cached_songs.append([url, song_data])
             print("Song added to cache")
-        self.stack.set_visible_child_name("chords")
+
+        # MODIFICATION: Naviguer le leaflet, pas le stack
+        self.leaflet.navigate_to_child(self.chords_view_overlay)
 
         if len(self.cached_songs) >= MAX_CACHED_SONGS:
             self.cached_songs.pop(0)
@@ -541,6 +548,9 @@ class TabsWindow(Adw.ApplicationWindow):
         self._push_history(["song", song_data])
 
     def on_favorites_clicked(self, button):
+        # MODIFICATION: S'assurer qu'on est sur la page du stack avant de changer
+        self.leaflet.navigate_back()
+
         # Update history
         self._push_history(["favorites"])
 
@@ -568,6 +578,8 @@ class TabsWindow(Adw.ApplicationWindow):
 
         # 3. Render the destination state
         if state_type == "favorites":
+            # MODIFICATION: Naviguer le leaflet en arrière (au cas où)
+            self.leaflet.navigate_back()
             self.stack.set_visible_child_name("favorites")
             # Reload favorites list (in case a favorite was added/removed on the song page)
             for child in list(self.favorites_list):
@@ -576,6 +588,8 @@ class TabsWindow(Adw.ApplicationWindow):
                 self._add_song_to_list(song, self.favorites_list)
 
         elif state_type == "search":
+            # MODIFICATION: Naviguer le leaflet en arrière (au cas où)
+            self.leaflet.navigate_back()
             songs = destination_state[1]
             self.stack.set_visible_child_name("results")
 
@@ -587,8 +601,9 @@ class TabsWindow(Adw.ApplicationWindow):
                 self._add_song_to_list(song, self.results_list)
 
         elif state_type == "song":
+            # MODIFICATION: Naviguer le leaflet vers la page des accords
             song_data = destination_state[1]
-            self.stack.set_visible_child_name("chords")
+            self.leaflet.navigate_to_child(self.chords_view_overlay)
             self.title_label.set_text(f"Title: {song_data['title']}")
             self.artist_label.set_text(f"Artist: {song_data['artist']}")
             self.details_label.set_text(
@@ -785,10 +800,15 @@ class TabsWindow(Adw.ApplicationWindow):
                 self.favorites.remove(song)
                 print("favorite removed")
 
-    def on_visible_child_changed(self, stack, pspec):
+    # MODIFICATION: Renommée et adaptée pour le leaflet
+    def on_leaflet_visible_child_changed(self, leaflet, pspec):
         """Cache les contrôles quand on quitte la page des accords"""
-        current_page = stack.get_visible_child_name()
-        if current_page != "chords":
+
+        # MODIFICATION: Vérifier l'enfant visible du leaflet
+        current_child = leaflet.get_visible_child()
+
+        if current_child != self.chords_view_overlay:
+            # On est sur la page du STACK (favoris ou recherche)
             self.play_pause_button.set_visible(False)
             self.speed_scale.set_visible(False)
             self.stop_scroll()  # Arrêter le défilement si on change de page
@@ -798,8 +818,15 @@ class TabsWindow(Adw.ApplicationWindow):
                 self.animation_timeout_id = None
             # Réinitialiser l'état de la souris
             self.is_mouse_over_controls = False
+
+            # --- Synchronisation de l'historique ---
+            # Si l'historique pense qu'on est sur une chanson,
+            # mais qu'on est revenu au stack (via swipe), on pop l'historique.
+            current_state_type = self._get_current_state()[0]
+            if current_state_type == "song":
+                self.history.pop()
         else:
-            # Sur la page des accords, montrer seulement le bouton play/pause
+            # On est sur la page des ACCORDS
             self.play_pause_button.set_visible(True)
             self.speed_scale.set_visible(False)
             # S'assurer que l'opacité est correcte
