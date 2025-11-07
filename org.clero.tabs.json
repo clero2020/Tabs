@@ -30,7 +30,7 @@
 		"sources": [
 		    {
 		        "type": "git",
-		        "url": "file:///var/home/clero/Documents/Code/gtk4app"
+		        "url": "file:///var/home/clero/Projects/Tabs"
 		    }
 		]
 	    },
@@ -39,10 +39,10 @@
 		"buildsystem": "simple",
 		"build-commands": [
 		    "mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/",
-		    "install -Dm644 org.clero.tabs.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/",
+		    "install -Dm644 data/icons/hicolor/scalable/apps/org.clero.tabs.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/",
 		    "mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/symbolic/apps/",
-		    "install -Dm644 org.clero.tabs-symbolic.svg ${FLATPAK_DEST}/share/icons/hicolor/symbolic/apps/",
-		    "install -Dm644 org.clero.tabs.desktop ${FLATPAK_DEST}/share/applications/"
+		    "install -Dm644 data/icons/hicolor/symbolic/apps/org.clero.tabs-symbolic.svg ${FLATPAK_DEST}/share/icons/hicolor/symbolic/apps/",
+		    "install -Dm644 data/org.clero.tabs.desktop.in ${FLATPAK_DEST}/share/applications/"
 		],
 		"sources": [
 		    { "type": "file", "path": "org.clero.tabs.svg" },
