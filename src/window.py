@@ -37,7 +37,7 @@ class TabsWindow(Adw.ApplicationWindow):
     chords_scrolled_window = Gtk.Template.Child()
     controls_box = Gtk.Template.Child()
 
-    # NOUVELLES LIAISONS
+    # NOUVELLES LIAISONS ADWLEAFLET
     leaflet = Gtk.Template.Child()
     chords_view_overlay = Gtk.Template.Child()
 
@@ -46,7 +46,7 @@ class TabsWindow(Adw.ApplicationWindow):
         # ========== STACK & LEAFLET ==========
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.stack.set_transition_duration(400)
-        # MODIFICATION: Connecter au leaflet au lieu du stack
+        # MODIFICATION: Connecter au leaflet au lieu du stack pour gérer la visibilité des contrôles
         self.leaflet.connect("notify::visible-child", self.on_leaflet_visible_child_changed)
 
         # ========== SEARCH CONNECTIONS ==========
@@ -93,7 +93,6 @@ class TabsWindow(Adw.ApplicationWindow):
             try:
                 with open(self.config_file, 'r') as f:
                     config = json.load(f)
-                    print(config)
                     loaded_size = float(config.get("zoom_size", default_zoom))
                     # Clamp zoom size between 6.0 and 36.0
                     initial_zoom = max(6.0, min(loaded_size, 36.0))
@@ -253,6 +252,9 @@ class TabsWindow(Adw.ApplicationWindow):
 
         # Démarrer l'animation si elle n'est pas déjà en cours
         if self.animation_timeout_id is None:
+            # S'assurer que l'ancienne est supprimée si elle existe (pour éviter les doublons)
+            if self.animation_timeout_id is not None:
+                 GLib.source_remove(self.animation_timeout_id)
             self.animation_timeout_id = GLib.timeout_add(16, self.animate_opacity)  # ~60 FPS
 
     # -----------------------
@@ -261,11 +263,7 @@ class TabsWindow(Adw.ApplicationWindow):
     def on_speed_scale_changed(self, scale):
         """Met à jour la vitesse de défilement en fonction du curseur."""
         self.scroll_speed = scale.get_value()
-        # Si le défilement est en cours, redémarrez-le avec la nouvelle vitesse pour appliquer le changement immédiatement
-        if self.scroll_timeout_id is not None:
-            # Nous ne pouvons pas arrêter/redémarrer directement dans le callback GLib.timeout_add,
-            # mais nous ajustons simplement le facteur dans _auto_scroll_step.
-            pass # Le pas de défilement est mis à jour automatiquement par self.scroll_speed dans _auto_scroll_step
+        # Le pas de défilement est mis à jour automatiquement par self.scroll_speed dans _auto_scroll_step
 
     def start_scroll(self):
         """Démarre le défilement automatique."""
@@ -319,7 +317,6 @@ class TabsWindow(Adw.ApplicationWindow):
 
     def on_play_pause_clicked(self, button):
         """Bascule entre lecture et pause."""
-        # Ne rien faire si nous ne sommes pas sur la page des accords
         # MODIFICATION: Vérifier l'enfant visible du leaflet
         if self.leaflet.get_visible_child() != self.chords_view_overlay:
             return
@@ -458,6 +455,11 @@ class TabsWindow(Adw.ApplicationWindow):
             for song in songs:
                 self._add_song_to_list(song, self.results_list)
 
+            # 1. Assurez-vous d'être dans le bon enfant du leaflet
+            if self.leaflet.get_visible_child() == self.chords_view_overlay:
+                 # Revenir sur le stack avant de changer la page du stack
+                 self.leaflet.navigate_back()
+
             self.stack.set_visible_child_name("results")
             # Update history
             self._push_history(["search", songs])
@@ -471,11 +473,6 @@ class TabsWindow(Adw.ApplicationWindow):
                 song_data = cached_song[1]
                 if cached_song[1] == {}:
                     self.cached_songs = [s for s in self.cached_songs if s[1] != {}]
-
-                    for cached_song in self.cached_songs:
-                        print(cached_song[0])
-                        print(cached_song[1])
-                    print("Song error, cleared")
                 break
         if not song_data:
             song_data = get_song_details(url.replace("https://www", "https://tabs"))
@@ -485,8 +482,9 @@ class TabsWindow(Adw.ApplicationWindow):
             self.cached_songs.append([url, song_data])
             print("Song added to cache")
 
-        # MODIFICATION: Naviguer le leaflet, pas le stack
-        self.leaflet.navigate_to_child(self.chords_view_overlay)
+        # FIX DU BUG DE LA LIGNE 489: Utiliser la méthode correcte set_visible_child pour AdwLeaflet
+        # C'est cette ligne qui résout l'AttributeError!
+        self.leaflet.set_visible_child(self.chords_view_overlay)
 
         if len(self.cached_songs) >= MAX_CACHED_SONGS:
             self.cached_songs.pop(0)
@@ -548,8 +546,10 @@ class TabsWindow(Adw.ApplicationWindow):
         self._push_history(["song", song_data])
 
     def on_favorites_clicked(self, button):
-        # MODIFICATION: S'assurer qu'on est sur la page du stack avant de changer
-        self.leaflet.navigate_back()
+        # MODIFICATION: Revenir en arrière sur le leaflet (pour sortir de la page des accords si nécessaire)
+        # On utilise navigate_back pour profiter de l'animation de retour
+        if self.leaflet.get_visible_child() == self.chords_view_overlay:
+            self.leaflet.navigate_back()
 
         # Update history
         self._push_history(["favorites"])
@@ -603,7 +603,7 @@ class TabsWindow(Adw.ApplicationWindow):
         elif state_type == "song":
             # MODIFICATION: Naviguer le leaflet vers la page des accords
             song_data = destination_state[1]
-            self.leaflet.navigate_to_child(self.chords_view_overlay)
+            self.leaflet.set_visible_child(self.chords_view_overlay) # La méthode est set_visible_child
             self.title_label.set_text(f"Title: {song_data['title']}")
             self.artist_label.set_text(f"Artist: {song_data['artist']}")
             self.details_label.set_text(
@@ -750,15 +750,6 @@ class TabsWindow(Adw.ApplicationWindow):
         # Remove all instances of the chord_tag from the entire text
         buffer.remove_tag_by_name("chord_tag", start_iter, end_iter)
 
-        # Regex pattern to broadly match chords (capital letter, followed by optional non-space/non-newline characters)
-        # This pattern catches common forms like Am, G/B, C#7, Dsus4, etc.
-        # We use a non-greedy match (.*?) to stop at the next space or newline.
-        # Note: Chords usually appear on their own line or separated by multiple spaces/tabs.
-        # This basic pattern (([A-G][b#]?[a-z0-9]*) ?) is simplified for common tabs format.
-
-        # A slightly more robust pattern for text-based chords:
-        # (([A-G])([#b]?)(m|maj|sus|aug|dim)?[0-9]*([/\(][A-G][#b]?[\)]?)?)
-
         # A very broad pattern, but effective for cleaning up tab content:
         chord_pattern = r'([A-G][b#]?(m|min|maj|sus|aug|dim|add|7|9|11|13)*(\/[A-G][b#]?)?)\b'
 
@@ -800,9 +791,8 @@ class TabsWindow(Adw.ApplicationWindow):
                 self.favorites.remove(song)
                 print("favorite removed")
 
-    # MODIFICATION: Renommée et adaptée pour le leaflet
     def on_leaflet_visible_child_changed(self, leaflet, pspec):
-        """Cache les contrôles quand on quitte la page des accords"""
+        """Cache les contrôles quand on quitte la page des accords (gestion pour AdwLeaflet)"""
 
         # MODIFICATION: Vérifier l'enfant visible du leaflet
         current_child = leaflet.get_visible_child()
