@@ -490,7 +490,10 @@ class TabsWindow(Adw.ApplicationWindow):
         # --- NOUVELLE LOGIQUE DE COULEUR DE DIFFICULTÉ ---
         # 1. Mise à jour du texte
         self.details_label.set_text(
-            f"Tuning: {song_data['tuning']} — Capo: {song_data['capo']} — Difficulty: {song_data['difficulty']} — Type: {song_data['type']}"
+            f"""Tuning: {song_data['tuning']}
+            Capo: {song_data['capo']}
+            Difficulty: {song_data['difficulty']}
+            Type: {song_data['type']}"""
         )
 
         # 2. Suppression de toutes les classes de difficulté précédentes
