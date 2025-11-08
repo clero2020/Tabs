@@ -176,6 +176,7 @@
                                 <child>
                                   <object class="GtkLabel" id="details_label">
                                     <property name="halign">start</property>
+                                    <property name="wrap-mode">word</property>
                                     <property name="label">Info details here...</property>
                                   </object>
                                 </child>
