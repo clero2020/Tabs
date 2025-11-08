@@ -155,7 +155,7 @@ class FreetarTabsParser(HTMLParser):
         text = html.unescape(data)
         if not text.strip() and not text.endswith("\n"):
             # conserve les vrais espaces
-            self.details["tab_content"] += text
+            self.details["tab_content"] += text.replace("\xa0","\xa0\xa0")
             return
 
         if self.in_title_link and self.details["artist"] == "N/A":
@@ -261,5 +261,4 @@ def get_song_details(url):
     # 2. Extraction des métadonnées par Regex (requiert le HTML brut)
     parser.set_metadata_from_raw_html(html)
     parser.clean_tab_content()
-    print(parser.details)
     return parser.details
