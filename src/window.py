@@ -390,11 +390,13 @@ class TabsWindow(Adw.ApplicationWindow):
         title_label = Gtk.Label(label="", xalign=0)
         title_label.set_markup(title_markup)
 
-        title_label.set_line_wrap(True)
-        title_label.set_line_wrap_mode(Pango.WrapMode.WORD)
-        title_label.set_max_width_chars(20)  # Largeur maximale en caractères
-        title_label.set_ellipsize(Pango.EllipsizeMode.END)  # Ajouter "..." si le texte est trop long
-        title_label.set_justify(Gtk.Justification.LEFT)  # Alignement à gauche
+        # Activer le retour à la ligne (GTK4)
+        title_label.set_wrap(True)  # set_wrap au lieu de set_line_wrap
+        title_label.set_wrap_mode(Pango.WrapMode.WORD)  # set_wrap_mode au lieu de set_line_wrap_mode
+        title_label.set_max_width_chars(20)
+        title_label.set_ellipsize(Pango.EllipsizeMode.END)
+        title_label.set_justify(Gtk.Justification.LEFT)
+        title_label.set_hexpand(True)
 
         main_grid.attach(title_label, 0, 0, 2, 1)  # Prend 2 colonnes
 
