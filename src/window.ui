@@ -142,6 +142,8 @@
                                         <child>
                                           <object class="GtkLabel" id="title_label">
                                             <property name="halign">start</property>
+                                            <property name="wrap">True</property>
+                                            <property name="wrap-mode">word</property>
                                             <property name="label">Title:</property>
                                             <attributes>
                                               <attribute name="weight" value="bold"/>
@@ -152,6 +154,8 @@
                                         <child>
                                           <object class="GtkLabel" id="artist_label">
                                             <property name="halign">start</property>
+                                            <property name="wrap">True</property>
+                                            <property name="wrap-mode">word</property>
                                             <property name="label">Artist:</property>
                                           </object>
                                         </child>
