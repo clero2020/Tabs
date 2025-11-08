@@ -204,6 +204,30 @@ class TabsWindow(Adw.ApplicationWindow):
             color: @destructive_color; /* Utilise la couleur destructive du thème Adwaita (rouge) */
             font-weight: bold;
         }
+
+        /* Styles responsives pour écrans étroits */
+        .compact-mode .title-label {
+            font-size: 0.9em;
+        }
+
+        .compact-mode .artist-label {
+            font-size: 0.8em;
+        }
+
+        .compact-mode .details-label {
+            font-size: 0.8em;
+        }
+
+        /* Contrôles flottants plus compacts */
+        .floating-controls.compact {
+            margin: 5px;
+        }
+
+        .floating-controls.compact button {
+            min-width: 32px;
+            min-height: 32px;
+            padding: 4px;
+        }
         """
         app_css_provider.load_from_data(css_styles.encode())
 
@@ -231,11 +255,81 @@ class TabsWindow(Adw.ApplicationWindow):
         self.controls_box.set_opacity(1.0)
 
         # ========== RESPONSIVE DESIGN ==========
-        self.connect("notify::default-width", self.on_window_resized)
-        self._current_width = self.get_default_width()
+        self._current_width = 800  # Valeur par défaut
+        self._size_timeout_id = None
+        # Initialiser après que la fenêtre soit affichée
+        GLib.timeout_add(100, self.initialize_responsive_design)
 
-        # Appliquer le style initial
+    def initialize_responsive_design(self):
+        """Initialise le design responsive après que la fenêtre soit affichée"""
+        self._current_width = self.get_width()
         self.update_responsive_layout()
+        # Se connecter aux changements de taille
+        self.connect("notify::width", self.on_window_resized)
+        return False  # Ne pas répéter
+
+    def on_window_resized(self, window, pspec):
+        """Met à jour le layout quand la fenêtre est redimensionnée"""
+        new_width = self.get_width()
+        if new_width != self._current_width:
+            self._current_width = new_width
+            # Utiliser un timeout pour éviter des mises à jour trop fréquentes
+            if self._size_timeout_id:
+                GLib.source_remove(self._size_timeout_id)
+            self._size_timeout_id = GLib.timeout_add(100, self.delayed_layout_update)
+
+    def delayed_layout_update(self):
+        """Mise à jour différée du layout"""
+        self._size_timeout_id = None
+        self.update_responsive_layout()
+        return False
+
+    def update_responsive_layout(self):
+        """Adapte le layout en fonction de la largeur de la fenêtre"""
+        is_narrow = self._current_width < 600  # Seuil pour écran étroit
+
+        # Ajuster les marges principales
+        if hasattr(self, 'main_box'):
+            if is_narrow:
+                self.main_box.set_margin_start(5)
+                self.main_box.set_margin_end(5)
+                self.main_box.set_margin_top(5)
+                self.main_box.set_margin_bottom(5)
+                self.main_box.set_spacing(5)
+            else:
+                self.main_box.set_margin_start(10)
+                self.main_box.set_margin_end(10)
+                self.main_box.set_margin_top(10)
+                self.main_box.set_margin_bottom(10)
+                self.main_box.set_spacing(10)
+
+        # Ajuster la boîte de contrôle de défilement
+        if hasattr(self, 'controls_box'):
+            if is_narrow:
+                self.controls_box.set_margin_end(10)
+                self.controls_box.set_margin_bottom(10)
+                # Appliquer une classe CSS pour les styles compact
+                style_context = self.controls_box.get_style_context()
+                if not style_context.has_class("compact"):
+                    style_context.add_class("compact")
+            else:
+                self.controls_box.set_margin_end(20)
+                self.controls_box.set_margin_bottom(20)
+                style_context = self.controls_box.get_style_context()
+                if style_context.has_class("compact"):
+                    style_context.remove_class("compact")
+
+        # Ajuster les polices pour les écrans étroits
+        if hasattr(self, 'title_label') and hasattr(self, 'artist_label') and hasattr(self, 'details_label'):
+            if is_narrow:
+                self.title_label.add_css_class("compact-mode")
+                self.artist_label.add_css_class("compact-mode")
+                self.details_label.add_css_class("compact-mode")
+            else:
+                self.title_label.remove_css_class("compact-mode")
+                self.artist_label.remove_css_class("compact-mode")
+                self.details_label.remove_css_class("compact-mode")
+
     # -----------------------
     # ANIMATION D'OPACITÉ
     # -----------------------
@@ -405,6 +499,23 @@ class TabsWindow(Adw.ApplicationWindow):
         spacer.set_hexpand(True)
         hbox.append(spacer)
 
+        # Favorite icon setup
+        icon_name = "starred-symbolic" if song in self.favorites else "non-starred-symbolic"
+        fav_icon = Gtk.Image.new_from_icon_name(icon_name)
+
+        # Favorite button
+        fav_button = Gtk.Button()
+        fav_button.set_tooltip_text("Toggle favorite")
+        fav_button.set_child(fav_icon)
+        fav_button.set_valign(Gtk.Align.CENTER)
+        fav_button.set_margin_end(10)
+
+        # Store song data in button
+        fav_button.song_data = song
+        fav_button.connect("clicked", self.on_fav_clicked, song)
+
+        hbox.append(fav_button)
+
         # Card and ListBoxRow
         card_bin = Adw.Bin()
         card_bin.add_css_class("card")
@@ -415,6 +526,7 @@ class TabsWindow(Adw.ApplicationWindow):
         row.url = song["song_url"]
 
         listbox.append(row)
+
     # -----------------------
     # NAVIGATION HANDLERS
     # -----------------------
@@ -532,6 +644,9 @@ class TabsWindow(Adw.ApplicationWindow):
 
         # Update history
         self._push_history(["song", song_data])
+
+        # Mettre à jour le layout responsive
+        GLib.timeout_add(100, self.update_responsive_layout)
 
     def on_favorites_clicked(self, button):
         if self.leaflet.get_visible_child() == self.chords_view_overlay:
@@ -699,6 +814,11 @@ class TabsWindow(Adw.ApplicationWindow):
             GLib.source_remove(self.animation_timeout_id)
             self.animation_timeout_id = None
 
+        # Arrêter le timeout de redimensionnement
+        if self._size_timeout_id is not None:
+            GLib.source_remove(self._size_timeout_id)
+            self._size_timeout_id = None
+
         try:
             os.makedirs(self.config_dir, exist_ok=True)
             config_data = {
@@ -806,42 +926,3 @@ class TabsWindow(Adw.ApplicationWindow):
             # S'assurer que l'opacité est correcte
             if self.scroll_timeout_id is None:
                 self.start_opacity_animation(1.0)  # Pas de défilement = pleine opacité
-
-
-    def on_window_resized(self, window, pspec):
-        """Met à jour le layout quand la fenêtre est redimensionnée"""
-        new_width = self.get_width()
-        if new_width != self._current_width:
-            self._current_width = new_width
-            self.update_responsive_layout()
-
-    def update_responsive_layout(self):
-        """Adapte le layout en fonction de la largeur de la fenêtre"""
-        is_narrow = self._current_width < 600  # Seuil pour écran étroit
-
-        # Ajuster les marges
-        if hasattr(self, 'main_box'):
-            if is_narrow:
-                self.main_box.set_margin_start(5)
-                self.main_box.set_margin_end(5)
-                self.main_box.set_margin_top(5)
-                self.main_box.set_margin_bottom(5)
-            else:
-                self.main_box.set_margin_start(10)
-                self.main_box.set_margin_end(10)
-                self.main_box.set_margin_top(10)
-                self.main_box.set_margin_bottom(10)
-
-        # Ajuster la boîte de contrôle de défilement
-        if hasattr(self, 'controls_box'):
-            if is_narrow:
-                self.controls_box.set_margin_end(10)
-                self.controls_box.set_margin_bottom(10)
-                # Réduire la taille des boutons sur écran étroit
-                self.play_pause_button.set_height_request(40)
-                self.play_pause_button.set_width_request(40)
-            else:
-                self.controls_box.set_margin_end(20)
-                self.controls_box.set_margin_bottom(20)
-                self.play_pause_button.set_height_request(48)
-                self.play_pause_button.set_width_request(48)
