@@ -5,6 +5,6 @@ Icon=io.github.clero2020.tabs
 Terminal=false
 Type=Application
 Categories=Utility;
-Keywords=GTK;
+Keywords=tabs;chords;lyrics
 StartupNotify=true
 DBusActivatable=true

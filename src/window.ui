@@ -15,12 +15,12 @@
                 <property name="input-hints">no-emoji</property>
                 <property name="max-width-chars">50</property>
                 <property name="placeholder-text">Search a song</property>
-                <property name="tooltip-text">Search</property>
+                <property name="tooltip-text">Search for songs by title or artist</property>
               </object>
             </property>
             <child type="start">
               <object class="GtkButton" id="back_button">
-                <property name="tooltip-text">Return</property>
+                <property name="tooltip-text">Go back</property>
                 <child>
                   <object class="GtkImage">
                     <property name="icon-name">go-previous-symbolic</property>
@@ -30,7 +30,7 @@
             </child>
             <child type="start">
               <object class="GtkButton" id="favorites_button">
-                <property name="tooltip-text">Favorites</property>
+                <property name="tooltip-text">View favorites</property>
                 <child>
                   <object class="GtkImage">
                     <property name="icon-name">starred-symbolic</property>
@@ -43,7 +43,7 @@
                 <property name="icon-name">open-menu-symbolic</property>
                 <property name="menu-model">primary_menu</property>
                 <property name="primary">True</property>
-                <property name="tooltip-text">Main Menu</property>
+                <property name="tooltip-text">Application menu</property>
               </object>
             </child>
           </object>
@@ -101,10 +101,10 @@
                       </object>
                     </property>
                     <property name="name">results</property>
-                    <property name="title">Results</property>
+                    <property name="title">Search Results</property>
                   </object>
                 </child>
-                </object>
+              </object>
             </child>
             <child>
               <object class="GtkOverlay" id="chords_view_overlay">
@@ -121,7 +121,7 @@
                         <property name="spacing">10</property>
                         <child>
                           <object class="GtkFrame" id="info_frame">
-                            <property name="label"> Song Info</property>
+                            <property name="label">Song Information</property>
                             <child>
                               <object class="GtkBox" id="info_box">
                                 <property name="margin-bottom">10</property>
@@ -144,7 +144,7 @@
                                             <property name="halign">start</property>
                                             <property name="wrap">True</property>
                                             <property name="wrap-mode">word</property>
-                                            <property name="label">Title:</property>
+                                            <property name="label">Title: Loading...</property>
                                             <attributes>
                                               <attribute name="weight" value="bold"/>
                                               <attribute name="scale" value="1.2"/>
@@ -156,7 +156,7 @@
                                             <property name="halign">start</property>
                                             <property name="wrap">True</property>
                                             <property name="wrap-mode">word</property>
-                                            <property name="label">Artist:</property>
+                                            <property name="label">Artist: Loading...</property>
                                           </object>
                                         </child>
                                       </object>
@@ -165,7 +165,7 @@
                                       <object class="GtkButton" id="fav_song_button">
                                         <property name="halign">end</property>
                                         <property name="height-request">32</property>
-                                        <property name="tooltip-text">Ajouter aux favoris</property>
+                                        <property name="tooltip-text">Add to favorites</property>
                                         <property name="valign">center</property>
                                         <property name="width-request">32</property>
                                         <child>
@@ -183,7 +183,7 @@
                                     <property name="wrap">True</property>
                                     <property name="wrap-mode">word</property>
                                     <property name="xalign">0</property>
-                                    <property name="label">Info details here...</property>
+                                    <property name="label">Tuning: — Capo: — Difficulty: — Type:</property>
                                   </object>
                                 </child>
                                 <child>
@@ -199,7 +199,7 @@
                         </child>
                         <child>
                           <object class="GtkFrame" id="lyrics_frame">
-                            <property name="label"> Lyrics &amp; Chords</property>
+                            <property name="label">Lyrics &amp; Chords</property>
                             <property name="vexpand">true</property>
                             <child>
                               <object class="GtkTextView" id="lyrics_view">
@@ -243,11 +243,11 @@
                         <property name="hexpand">false</property>
                         <property name="inverted">True</property>
                         <property name="orientation">vertical</property>
-                        <property name="tooltip-text">Speed</property>
+                        <property name="tooltip-text">Scroll speed</property>
                         <property name="valign">center</property>
                         <property name="value-pos">bottom</property>
                         <property name="visible">false</property>
-                        </object>
+                      </object>
                     </child>
                     <child>
                       <object class="GtkButton" id="play_pause_button">
@@ -255,7 +255,7 @@
                         <property name="has-frame">False</property>
                         <property name="height-request">48</property>
                         <property name="icon-name">media-playback-start-symbolic</property>
-                        <property name="tooltip-text">Démarrer/Arrêter le défilement</property>
+                        <property name="tooltip-text">Start/Stop auto-scroll</property>
                         <property name="width-request">48</property>
                       </object>
                     </child>

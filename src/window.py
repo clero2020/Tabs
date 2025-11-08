@@ -10,13 +10,15 @@ from .scraper import fetch_freetar_results, get_song_details
 # Define the maximum size of the history stack
 MAX_HISTORY_SIZE = 10
 MAX_CACHED_SONGS = 1000
-MAX_CACHED_SEARCHS = 1000
+MAX_CACHED_SEARCHES = 1000
 
 @Gtk.Template(resource_path='/org/clero/tabs/window.ui')
 class TabsWindow(Adw.ApplicationWindow):
+    """Main application window for the Tabs application."""
+
     __gtype_name__ = 'TabsWindow'
 
-    # Template Children Bindings (assuming IDs are set in window.ui)
+    # Template Children Bindings
     search_entry = Gtk.Template.Child()
     results_list = Gtk.Template.Child()
     stack = Gtk.Template.Child()
@@ -37,45 +39,43 @@ class TabsWindow(Adw.ApplicationWindow):
     chords_scrolled_window = Gtk.Template.Child()
     controls_box = Gtk.Template.Child()
 
-    # NOUVELLES LIAISONS ADWLEAFLET
+    # ADW Leaflet bindings
     leaflet = Gtk.Template.Child()
     chords_view_overlay = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
+        """Initialize the main window with all components and event handlers."""
         super().__init__(**kwargs)
-        # ========== STACK & LEAFLET ==========
+
+        # ========== STACK & LEAFLET CONFIGURATION ==========
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.stack.set_transition_duration(400)
-        # MODIFICATION: Connecter au leaflet au lieu du stack pour gérer la visibilité des contrôles
+        # Connect to leaflet to manage control visibility
         self.leaflet.connect("notify::visible-child", self.on_leaflet_visible_child_changed)
 
         # ========== SEARCH CONNECTIONS ==========
-        # Connect pressing Enter in the search entry
         self.search_entry.connect("activate", self.on_search_activated)
-        # Connect clicking a song in the results list
         self.results_list.connect("row-activated", self.on_row_activated)
-        # Connect clicking a song in the favorites list
         self.favorites_list.connect("row-activated", self.on_row_activated)
 
         # ========== SCROLL / PLAYBACK MANAGEMENT ==========
         self.scroll_timeout_id = None
-        self.scroll_speed = 1.0       # Vitesse de base (du curseur)
-        self.scroll_interval = 50     # Intervalle de mise à jour en ms
-        self.scroll_amount = 0.5      # Pixels de base à défiler par intervalle
+        self.scroll_speed = 1.0       # Base scroll speed
+        self.scroll_interval = 50     # Update interval in ms
+        self.scroll_amount = 0.5      # Base pixels to scroll per interval
 
-        # Connecter le bouton et le curseur (si les IDs existent dans le .ui)
+        # Connect playback controls
         if self.play_pause_button:
             self.play_pause_button.connect("clicked", self.on_play_pause_clicked)
-            self.play_pause_button.set_visible(False) # Caché par défaut
+            self.play_pause_button.set_visible(False)  # Hidden by default
 
         if self.speed_scale:
             self.speed_scale.set_range(0.5, 5.0)
             self.speed_scale.set_value(self.scroll_speed)
             self.speed_scale.connect("value-changed", self.on_speed_scale_changed)
-            self.speed_scale.set_visible(False) # Caché par défaut
-        # ===================================================
+            self.speed_scale.set_visible(False)  # Hidden by default
 
-        # ========== CONFIG FILE ==========
+        # ========== CONFIGURATION FILE ==========
         self.favorites = None
 
         # Define configuration file path
@@ -98,11 +98,11 @@ class TabsWindow(Adw.ApplicationWindow):
             except (IOError, json.JSONDecodeError, ValueError) as e:
                 print(f"Error loading config: {e}")
         else:
-            print("no config file")
+            print("No config file found")
 
-        # ========== Cached FILE ==========
+        # ========== CACHE FILE ==========
         self.cached_songs = None
-        self.cached_searchs = None
+        self.cached_searches = None
 
         # Define cache file path
         self.cache_dir = os.environ.get("XDG_CACHE_HOME")
@@ -114,16 +114,16 @@ class TabsWindow(Adw.ApplicationWindow):
                 with open(self.cache_file, 'r') as f:
                     cache = json.load(f)
                     self.cached_songs = cache.get("cached_songs")
-                    self.cached_searchs = cache.get("cached_searchs")
+                    self.cached_searches = cache.get("cached_searches")
             except (IOError, json.JSONDecodeError, ValueError) as e:
                 print(f"Error loading cache: {e}")
         else:
-            print("no cache file")
+            print("No cache file found")
 
-        if not self.cached_songs :
+        if not self.cached_songs:
             self.cached_songs = []
-        if not self.cached_searchs :
-            self.cached_searchs = []
+        if not self.cached_searches:
+            self.cached_searches = []
 
         # ========== ZOOM MECHANISMS ==========
         self._current_zoom_size = initial_zoom
@@ -171,7 +171,7 @@ class TabsWindow(Adw.ApplicationWindow):
             self.favorites = []
         self.songs_searched = self.favorites
 
-        # favorites on song page
+        # Connect favorite button on song page
         self.fav_song_button.connect("clicked", self.on_fav_song_clicked)
 
         # ============ HISTORY MANAGEMENT ============
@@ -182,91 +182,90 @@ class TabsWindow(Adw.ApplicationWindow):
         self.back_button.connect("clicked", self.on_back_clicked)
         self.favorites_button.connect("clicked", self.on_favorites_clicked)
 
-        # ========== TEXT COLOR ==========
+        # ========== TEXT COLORING ==========
         self.lyrics_buffer = self.lyrics_view.get_buffer()
 
         # Get the tag table from the buffer
         tag_table = self.lyrics_buffer.get_tag_table()
-        # Create a new tag for the color (e.g., green for chords)
-        # We name it 'chord_tag'
+        # Create a new tag for chord coloring
         chord_tag = Gtk.TextTag.new("chord_tag")
         chord_tag.set_property("foreground", Adw.AccentColor.to_rgba(Adw.StyleManager.get_default().get_accent_color()).to_string())
         chord_tag.set_property("weight", Pango.Weight.BOLD)
         tag_table.add(chord_tag)
 
-        # Create another tag (e.g., red for difficulty)
+        # Create another tag for difficulty
         difficulty_tag = Gtk.TextTag.new("difficulty_tag")
         difficulty_tag.set_property("foreground", "red")
         tag_table.add(difficulty_tag)
 
-        # ========== NOUVEAU CSS POUR LA DIFFICULTÉ ET LE THÈME ==========
-        # Créer un fournisseur de CSS pour les styles de l'application
+        # ========== CSS FOR DIFFICULTY AND THEME ==========
         app_css_provider = Gtk.CssProvider()
 
         css_styles = """
-        /* Ciblage des classes ajoutées dynamiquement au details_label */
+        /* Target classes dynamically added to details_label */
         .difficulty-easy {
-            color: @success_color; /* Utilise la couleur de succès du thème Adwaita (vert) */
+            color: @success_color; /* Use Adwaita theme success color (green) */
             font-weight: bold;
         }
 
         .difficulty-medium {
-            color: @warning_color; /* Utilise la couleur d'avertissement du thème Adwaita (orange/jaune) */
+            color: @warning_color; /* Use Adwaita theme warning color (orange/yellow) */
             font-weight: bold;
         }
 
         .difficulty-hard {
-            color: @destructive_color; /* Utilise la couleur destructive du thème Adwaita (rouge) */
+            color: @destructive_color; /* Use Adwaita theme destructive color (red) */
             font-weight: bold;
         }
         """
         app_css_provider.load_from_data(css_styles.encode())
 
-        # Appliquer les styles au contexte de style de l'application
+        # Apply styles to application style context
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(),
             app_css_provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
 
-        # ========== ANIMATION D'OPACITÉ ==========
+        # ========== OPACITY ANIMATION ==========
         self.is_mouse_over_controls = False
-        self.current_opacity = 1.0  # Commence à pleine opacité
+        self.current_opacity = 1.0  # Start at full opacity
         self.target_opacity = 1.0
-        self.animation_speed = 0.1  # Vitesse de l'animation (plus grand = plus rapide)
+        self.animation_speed = 0.1  # Animation speed (higher = faster)
         self.animation_timeout_id = None
 
-        # Contrôleurs de souris pour gérer la transparence
+        # Mouse controllers for transparency management
         enter_controller = Gtk.EventControllerMotion.new()
         enter_controller.connect("enter", self.on_controls_enter)
         enter_controller.connect("leave", self.on_controls_leave)
         self.controls_box.add_controller(enter_controller)
 
-        # Opacité initiale
+        # Initial opacity
         self.controls_box.set_opacity(1.0)
+
     # -----------------------
-    # ANIMATION D'OPACITÉ
+    # OPACITY ANIMATION
     # -----------------------
     def animate_opacity(self):
-        """Animation fluide de l'opacité"""
+        """Smooth opacity animation."""
         if abs(self.current_opacity - self.target_opacity) < 0.01:
             self.current_opacity = self.target_opacity
             self.controls_box.set_opacity(self.current_opacity)
             self.animation_timeout_id = None
-            return False  # Arrêter l'animation
+            return False  # Stop animation
 
-        # Interpolation linéaire
+        # Linear interpolation
         self.current_opacity += (self.target_opacity - self.current_opacity) * self.animation_speed
         self.controls_box.set_opacity(self.current_opacity)
-        return True  # Continuer l'animation
+        return True  # Continue animation
 
     def start_opacity_animation(self, target_opacity):
-        """Démarre l'animation vers une opacité cible"""
+        """Start animation towards target opacity."""
         self.target_opacity = target_opacity
 
-        # Démarrer l'animation si elle n'est pas déjà en cours
+        # Start animation if not already running
         if self.animation_timeout_id is None:
-            # S'assurer que l'ancienne est supprimée si elle existe (pour éviter les doublons)
+            # Ensure old animation is removed if it exists
             if self.animation_timeout_id is not None:
                  GLib.source_remove(self.animation_timeout_id)
             self.animation_timeout_id = GLib.timeout_add(16, self.animate_opacity)  # ~60 FPS
@@ -275,63 +274,62 @@ class TabsWindow(Adw.ApplicationWindow):
     # SCROLL HANDLERS
     # -----------------------
     def on_speed_scale_changed(self, scale):
-        """Met à jour la vitesse de défilement en fonction du curseur."""
+        """Update scroll speed based on scale value."""
         self.scroll_speed = scale.get_value()
-        # Le pas de défilement est mis à jour automatiquement par self.scroll_speed dans _auto_scroll_step
 
     def start_scroll(self):
-        """Démarre le défilement automatique."""
+        """Start automatic scrolling."""
         if self.scroll_timeout_id is None and self.chords_scrolled_window:
-            # Intervalle de mise à jour en ms.
+            # Update interval in ms
             self.scroll_timeout_id = GLib.timeout_add(
                 self.scroll_interval,
                 self._auto_scroll_step
             )
-            # Mettre à jour l'icône et la visibilité
+            # Update icon and visibility
             self.play_pause_button.set_icon_name("media-playback-pause-symbolic")
             self.speed_scale.set_visible(True)
 
-            # Animation vers la transparence seulement si la souris n'est pas dessus
+            # Animate to transparency only if mouse is not over controls
             if not self.is_mouse_over_controls:
                 self.start_opacity_animation(0.3)
 
     def stop_scroll(self):
-        """Arrête le défilement automatique."""
+        """Stop automatic scrolling."""
         if self.scroll_timeout_id is not None:
             GLib.source_remove(self.scroll_timeout_id)
             self.scroll_timeout_id = None
-            # Mettre à jour l'icône et la visibilité
+            # Update icon and visibility
             self.play_pause_button.set_icon_name("media-playback-start-symbolic")
             self.speed_scale.set_visible(False)
 
-            # Animation vers pleine opacité quand le défilement s'arrête
+            # Animate to full opacity when scrolling stops
             self.start_opacity_animation(1.0)
 
     def _auto_scroll_step(self):
-        """Effectue un petit pas de défilement."""
+        """Perform a small scroll step."""
         if not self.chords_scrolled_window:
             return GLib.SOURCE_REMOVE
 
         adj = self.chords_scrolled_window.get_vadjustment()
 
-        # Calculer le nouveau pas de défilement en fonction de la vitesse ajustée
+        # Calculate new scroll amount based on adjusted speed
         new_value = adj.get_value() + (self.scroll_amount * self.scroll_speed)
 
-        # Upper est la hauteur totale du contenu, Page Size est la hauteur de la fenêtre visible
+        # Upper is total content height, Page Size is visible window height
         max_value = adj.get_upper() - adj.get_page_size()
 
         if new_value >= max_value:
-            # Atteint la fin : arrêter le défilement
-            adj.set_value(max_value) # Assurer que nous sommes au fond
+            # Reached end: stop scrolling
+            adj.set_value(max_value)  # Ensure we're at the bottom
             self.stop_scroll()
-            return GLib.SOURCE_REMOVE # Stopper la minuterie
+            return GLib.SOURCE_REMOVE  # Stop timer
         else:
             adj.set_value(new_value)
-            return GLib.SOURCE_CONTINUE # Continuer la minuterie
+            return GLib.SOURCE_CONTINUE  # Continue timer
 
     def on_play_pause_clicked(self, button):
-        """Bascule entre lecture et pause."""
-        # MODIFICATION: Vérifier l'enfant visible du leaflet
+        """Toggle between play and pause."""
+        # Check if we're on the chords view
         if self.leaflet.get_visible_child() != self.chords_view_overlay:
             return
 
@@ -341,25 +339,24 @@ class TabsWindow(Adw.ApplicationWindow):
             self.stop_scroll()
 
     def on_controls_enter(self, controller, x, y):
-        """Quand la souris entre dans la zone des contrôles."""
+        """When mouse enters controls area."""
         self.is_mouse_over_controls = True
-        # Toujours passer à pleine opacité au survol
+        # Always go to full opacity on hover
         self.start_opacity_animation(1.0)
 
     def on_controls_leave(self, controller):
-        """Quand la souris quitte la zone des contrôles."""
+        """When mouse leaves controls area."""
         self.is_mouse_over_controls = False
-        # Si le défilement est actif, retour à la transparence
+        # If scrolling is active, return to transparency
         if self.scroll_timeout_id is not None:
             self.start_opacity_animation(0.3)
-        # Sinon, rester à pleine opacité
 
     # -----------------------
     # HISTORY HELPERS
     # -----------------------
     def _push_history(self, new_state):
-        """Adds a new state to the history stack and limits its size."""
-        # Prevent stacking the same state repeatedly (e.g., clicking the same favorite button)
+        """Add a new state to the history stack and limit its size."""
+        # Prevent stacking the same state repeatedly
         if self.history and self.history[-1] == new_state:
             return
 
@@ -370,7 +367,7 @@ class TabsWindow(Adw.ApplicationWindow):
             del self.history[0]
 
     def _get_current_state(self):
-        """Returns the current state (last element in the stack)."""
+        """Return the current state (last element in the stack)."""
         return self.history[-1] if self.history else ["favorites"]
 
     # -----------------------
@@ -390,14 +387,14 @@ class TabsWindow(Adw.ApplicationWindow):
         title_label = Gtk.Label(label="", xalign=0)
         title_label.set_markup(title_markup)
 
-        # Activer le retour à la ligne (GTK4)
-        title_label.set_wrap(True)  # set_wrap au lieu de set_line_wrap
-        title_label.set_wrap_mode(Pango.WrapMode.WORD)  # set_wrap_mode au lieu de set_line_wrap_mode
+        # Enable word wrapping (GTK4)
+        title_label.set_wrap(True)
+        title_label.set_wrap_mode(Pango.WrapMode.WORD)
         title_label.set_max_width_chars(100)
         title_label.set_justify(Gtk.Justification.LEFT)
         title_label.set_hexpand(True)
 
-        main_grid.attach(title_label, 0, 0, 2, 1)  # Prend 2 colonnes
+        main_grid.attach(title_label, 0, 0, 2, 1)  # Takes 2 columns
 
         artist_label = Gtk.Label(label=song.get('artist', 'N/A'), xalign=0)
         artist_label.add_css_class("body")
@@ -412,7 +409,7 @@ class TabsWindow(Adw.ApplicationWindow):
         rating_label.add_css_class("caption")
         main_grid.attach(rating_label, 1, 2, 1, 1)
 
-        # Horizontal box: grid + spacer + button
+        # Horizontal box: grid + spacer
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         hbox.append(main_grid)
 
@@ -431,25 +428,27 @@ class TabsWindow(Adw.ApplicationWindow):
         row.url = song["song_url"]
 
         listbox.append(row)
+
     # -----------------------
     # NAVIGATION HANDLERS
     # -----------------------
     def on_search_activated(self, entry):
+        """Handle search entry activation (Enter key)."""
         text = entry.get_text()
         if text:
             songs = None
-            for cached_search in self.cached_searchs:
+            for cached_search in self.cached_searches:
                 if cached_search[0] == text:
                     songs = cached_search[1]
                     break
             if not songs:
                 songs = fetch_freetar_results(text)
-                self.cached_searchs.append([text, songs])
-                print("append")
+                self.cached_searches.append([text, songs])
+                print("Added to cache")
 
-            if len(self.cached_searchs) >= MAX_CACHED_SEARCHS:
-                self.cached_searchs.pop(0)
-                print("poped first cached search")
+            if len(self.cached_searches) >= MAX_CACHED_SEARCHES:
+                self.cached_searches.pop(0)
+                print("Removed oldest cached search")
 
             # Clear previous results
             children_to_remove = list(self.results_list)
@@ -459,9 +458,9 @@ class TabsWindow(Adw.ApplicationWindow):
             for song in songs:
                 self._add_song_to_list(song, self.results_list)
 
-            # 1. Assurez-vous d'être dans le bon enfant du leaflet
+            # Ensure we're on the correct leaflet child
             if self.leaflet.get_visible_child() == self.chords_view_overlay:
-                 # Revenir sur le stack avant de changer la page du stack
+                 # Go back to stack before changing stack page
                  self.leaflet.navigate(Adw.NavigationDirection.BACK)
 
             self.stack.set_visible_child_name("results")
@@ -470,6 +469,7 @@ class TabsWindow(Adw.ApplicationWindow):
             self.songs_searched = songs
 
     def on_row_activated(self, listbox, row):
+        """Handle song row activation (click)."""
         url = getattr(row, "url", None)
         song_data = None
         for cached_song in self.cached_songs:
@@ -486,23 +486,22 @@ class TabsWindow(Adw.ApplicationWindow):
             self.cached_songs.append([url, song_data])
             print("Song added to cache")
 
-        # FIX DU BUG DE LA LIGNE 489: Utiliser la méthode correcte set_visible_child pour AdwLeaflet
-        # C'est cette ligne qui résout l'AttributeError!
+        # Navigate to chords view
         self.leaflet.set_visible_child(self.chords_view_overlay)
 
         if len(self.cached_songs) >= MAX_CACHED_SONGS:
             self.cached_songs.pop(0)
-            print("poped first cached song")
+            print("Removed oldest cached song")
 
-        # AFFICHER LES CONTRÔLES DE DÉFILEMENT
+        # SHOW SCROLLING CONTROLS
         self.play_pause_button.set_visible(True)
         self.speed_scale.set_visible(False)
 
-        # Réinitialiser l'état du bouton play/pause
-        self.stop_scroll()  # S'assurer que le défilement est arrêté
+        # Reset play/pause button state
+        self.stop_scroll()  # Ensure scrolling is stopped
         self.play_pause_button.set_icon_name("media-playback-start-symbolic")
 
-        # État initial - pleine opacité car pas de défilement
+        # Initial state - full opacity since no scrolling
         self.current_opacity = 1.0
         self.target_opacity = 1.0
         self.controls_box.set_opacity(1.0)
@@ -510,27 +509,27 @@ class TabsWindow(Adw.ApplicationWindow):
         self.title_label.set_text(f"Title: {song_data['title']}")
         self.artist_label.set_text(f"Artist: {song_data['artist']}")
         difficulty = song_data['difficulty'].lower()
-        # --- NOUVELLE LOGIQUE DE COULEUR DE DIFFICULTÉ ---
-        # 1. Mise à jour du texte
+
+        # --- NEW DIFFICULTY COLOR LOGIC ---
+        # 1. Update text
         self.details_label.set_text(
             f"Tuning: {song_data['tuning']} — Capo: {song_data['capo']} — Difficulty: {song_data['difficulty']} — Type: {song_data['type']}"
         )
 
-        # 2. Suppression de toutes les classes de difficulté précédentes
+        # 2. Remove all previous difficulty classes
         self.details_label.remove_css_class("difficulty-easy")
         self.details_label.remove_css_class("difficulty-medium")
         self.details_label.remove_css_class("difficulty-hard")
 
-        # 3. Application de la nouvelle classe CSS
+        # 3. Apply new CSS class
         if 'easy' in difficulty or 'novice' in difficulty or 'beginner' in difficulty:
             self.details_label.add_css_class("difficulty-easy")
         elif 'medium' in difficulty or 'intermediate' in difficulty:
             self.details_label.add_css_class("difficulty-medium")
         elif 'hard' in difficulty or 'expert' in difficulty:
             self.details_label.add_css_class("difficulty-hard")
-        # ----------------------------------------------------
 
-        # --- SYNCHRONISER LE BOUTON DE FAVORIS ---
+        # --- SYNCHRONIZE FAVORITE BUTTON ---
         for song in self.songs_searched:
             if url in song["song_url"]:
                 self.current_song = song
@@ -539,17 +538,17 @@ class TabsWindow(Adw.ApplicationWindow):
         icon_name = "starred-symbolic" if is_favorite else "non-starred-symbolic"
         self.fav_icon.set_from_icon_name(icon_name)
 
-        # ----------------------------------------
         self.source_link.set_uri(song_data['original_url'])
         self.source_link.set_label("View on Ultimate Guitar")
 
-        # Application du texte et de la coloration (accords)
+        # Apply text and chord coloring
         self._set_lyrics_with_chord_colors(song_data['tab_content'])
 
         # Update history
         self._push_history(["song", song_data])
 
     def on_favorites_clicked(self, button):
+        """Handle favorites button click."""
         if self.leaflet.get_visible_child() == self.chords_view_overlay:
             self.leaflet.navigate(Adw.NavigationDirection.BACK)
         # Update history
@@ -564,8 +563,8 @@ class TabsWindow(Adw.ApplicationWindow):
                 self._add_song_to_list(song, self.favorites_list)
 
     def on_back_clicked(self, button):
-        """Action for the back button, navigating through history."""
-        # History must contain at least one state (the current one) and one previous state to go back to.
+        """Handle back button click, navigating through history."""
+        # History must contain at least one state and one previous state
         if len(self.history) <= 1:
             return
 
@@ -578,17 +577,17 @@ class TabsWindow(Adw.ApplicationWindow):
 
         # 3. Render the destination state
         if state_type == "favorites":
-            # MODIFICATION: Naviguer le leaflet en arrière (au cas où)
+            # Navigate leaflet back if needed
             self.leaflet.navigate(Adw.NavigationDirection.BACK)
             self.stack.set_visible_child_name("favorites")
-            # Reload favorites list (in case a favorite was added/removed on the song page)
+            # Reload favorites list
             for child in list(self.favorites_list):
                 self.favorites_list.remove(child)
             for song in self.favorites:
                 self._add_song_to_list(song, self.favorites_list)
 
         elif state_type == "search":
-            # MODIFICATION: Naviguer le leaflet en arrière (au cas où)
+            # Navigate leaflet back if needed
             self.leaflet.navigate(Adw.NavigationDirection.BACK)
             songs = destination_state[1]
             self.stack.set_visible_child_name("results")
@@ -601,9 +600,9 @@ class TabsWindow(Adw.ApplicationWindow):
                 self._add_song_to_list(song, self.results_list)
 
         elif state_type == "song":
-            # MODIFICATION: Naviguer le leaflet vers la page des accords
+            # Navigate leaflet to chords view
             song_data = destination_state[1]
-            self.leaflet.set_visible_child(self.chords_view_overlay) # La méthode est set_visible_child
+            self.leaflet.set_visible_child(self.chords_view_overlay)
             self.title_label.set_text(f"Title: {song_data['title']}")
             self.artist_label.set_text(f"Artist: {song_data['artist']}")
             self.details_label.set_text(
@@ -614,7 +613,6 @@ class TabsWindow(Adw.ApplicationWindow):
 
             buffer = self.lyrics_view.get_buffer()
             buffer.set_text(song_data['tab_content'])
-
 
     # -----------------------
     # ZOOM MANAGEMENT
@@ -710,11 +708,12 @@ class TabsWindow(Adw.ApplicationWindow):
     # -----------------------
     def on_close_request(self, window):
         """Save zoom and favorites on window close."""
-        # Arrêter l'animation d'opacité si elle est en cours
+        # Stop opacity animation if running
         if self.animation_timeout_id is not None:
             GLib.source_remove(self.animation_timeout_id)
             self.animation_timeout_id = None
-        # Config
+
+        # Save config
         try:
             os.makedirs(self.config_dir, exist_ok=True)
             config_data = {
@@ -727,31 +726,32 @@ class TabsWindow(Adw.ApplicationWindow):
             print(f"Could not save config: {e}")
         else:
             print("Config saved")
-        # Cache
+
+        # Save cache
         try:
             os.makedirs(self.cache_dir, exist_ok=True)
             cache_data = {
                 "cached_songs": self.cached_songs,
-                "cached_searchs": self.cached_searchs
+                "cached_searches": self.cached_searches
             }
             with open(self.cache_file, 'w') as f:
                 json.dump(cache_data, f, indent=4)
         except Exception as e:
-            print(f"Could not save cache{e}")
+            print(f"Could not save cache: {e}")
         else:
             print("Cache saved")
         return False
 
     def _set_lyrics_with_chord_colors(self, tab_content):
         """
-        Sets the text content and applies the 'chord_tag' to identified chords.
-        A chord is generally a capital letter (A-G) optionally followed by
-        m, sus, aug, dim, 7, 9, 11, #, b, etc.
+        Set text content and apply 'chord_tag' to identified chords.
+
+        Args:
+            tab_content (str): The tab content with chords and lyrics
         """
         buffer = self.lyrics_view.get_buffer()
 
-        # 1. Reset the buffer and remove previous tags
-        # This is crucial for performance and correctness
+        # Reset the buffer and remove previous tags
         buffer.set_text(tab_content)
 
         # Get iterators for the start and end of the buffer
@@ -761,14 +761,14 @@ class TabsWindow(Adw.ApplicationWindow):
         # Remove all instances of the chord_tag from the entire text
         buffer.remove_tag_by_name("chord_tag", start_iter, end_iter)
 
-        # A very broad pattern, but effective for cleaning up tab content:
+        # Pattern for identifying chords in tab content
         chord_pattern = r'([A-G][b#]?(m|min|maj|sus|aug|dim|add|7|9|11|13)*(\/[A-G][b#]?)?)\b'
 
         # Find all matches using regex
         for match in re.finditer(chord_pattern, tab_content):
             text = match.group(1).strip()
 
-            # Only process if the matched text is a plausible chord (e.g., avoid accidental matches with single letters)
+            # Only process if the matched text is a plausible chord
             if len(text) >= 1 and not text.islower():
                 start_index = match.start(1)
                 end_index = match.end(1)
@@ -785,51 +785,48 @@ class TabsWindow(Adw.ApplicationWindow):
                 )
 
     def on_fav_song_clicked(self, button):
-        """Bascule l'état favori de la chanson actuellement affichée."""
+        """Toggle favorite status of the currently displayed song."""
         img = self.fav_icon
         song = self.current_song
 
         if img.get_icon_name() == "non-starred-symbolic":
-            # Ajouter aux favoris
+            # Add to favorites
             img.set_from_icon_name("starred-symbolic")
             if song not in self.favorites:
                 self.favorites.append(song)
-                print("favorite added")
+                print("Favorite added")
         else:
-            # Retirer des favoris
+            # Remove from favorites
             img.set_from_icon_name("non-starred-symbolic")
             if song in self.favorites:
                 self.favorites.remove(song)
-                print("favorite removed")
+                print("Favorite removed")
 
     def on_leaflet_visible_child_changed(self, leaflet, pspec):
-        """Cache les contrôles quand on quitte la page des accords (gestion pour AdwLeaflet)"""
-
-        # MODIFICATION: Vérifier l'enfant visible du leaflet
+        """Hide controls when leaving chords page (AdwLeaflet management)."""
         current_child = leaflet.get_visible_child()
 
         if current_child != self.chords_view_overlay:
-            # On est sur la page du STACK (favoris ou recherche)
+            # On STACK page (favorites or search)
             self.play_pause_button.set_visible(False)
             self.speed_scale.set_visible(False)
-            self.stop_scroll()  # Arrêter le défilement si on change de page
-            # Arrêter l'animation d'opacité
+            self.stop_scroll()  # Stop scrolling if changing page
+            # Stop opacity animation
             if self.animation_timeout_id is not None:
                 GLib.source_remove(self.animation_timeout_id)
                 self.animation_timeout_id = None
-            # Réinitialiser l'état de la souris
+            # Reset mouse state
             self.is_mouse_over_controls = False
 
-            # --- Synchronisation de l'historique ---
-            # Si l'historique pense qu'on est sur une chanson,
-            # mais qu'on est revenu au stack (via swipe), on pop l'historique.
+            # --- History synchronization ---
+            # If history thinks we're on a song but we returned to stack (via swipe), pop history
             current_state_type = self._get_current_state()[0]
             if current_state_type == "song":
                 self.history.pop()
         else:
-            # On est sur la page des ACCORDS
+            # On CHORDS page
             self.play_pause_button.set_visible(True)
             self.speed_scale.set_visible(False)
-            # S'assurer que l'opacité est correcte
+            # Ensure opacity is correct
             if self.scroll_timeout_id is None:
-                self.start_opacity_animation(1.0)  # Pas de défilement = pleine opacité
+                self.start_opacity_animation(1.0)  # No scrolling = full opacity

@@ -1,39 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg"
-     width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Tabs">
-
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Tabs" xmlns:bx="https://boxy-svg.com">
   <defs>
-    <!-- Ombre douce globale -->
     <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
       <feOffset dx="0" dy="3" result="off"/>
       <feGaussianBlur in="off" stdDeviation="4" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0
-                0 0 0 0 0
-                0 0 0 0 0
-                0 0 0 0.25" result="shadow"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0&#10;                0 0 0 0 0&#10;                0 0 0 0 0&#10;                0 0 0 0.25" result="shadow"/>
       <feBlend in="SourceGraphic" in2="shadow" mode="normal"/>
     </filter>
-
-    <!-- Dégradé pour relief guitare -->
     <linearGradient id="guitarRelief" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#D0A27C"/>
-      <stop offset="60%" stop-color="#C49A77"/>
-      <stop offset="100%" stop-color="#A97457"/>
+      <stop offset="0" stop-color="#D0A27C"/>
+      <stop offset="0.6" stop-color="#C49A77"/>
+      <stop offset="1" stop-color="#A97457"/>
     </linearGradient>
-
-    <!-- Reflet guitare -->
     <linearGradient id="guitarShine" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2"/>
-      <stop offset="50%" stop-color="#ffffff" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2"/>
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.2"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.2"/>
     </linearGradient>
   </defs>
-
-  <!-- Feuille de papier stylisée -->
   <g filter="url(#softShadow)">
-    <rect x="24" y="16" width="80" height="96" rx="10" ry="10" fill="#fffefc" stroke="#e0e0e0" stroke-width="1.5"/>
-    <path d="M92 16 L104 30 L92 30 Z" fill="#e0e0e0"/>
+    <path fill="#fffefc" stroke="#e0e0e0" stroke-width="1.5" d="M 34 16 H 92 L 104 28 V 102 A 10 10 0 0 1 94 112 H 34 A 10 10 0 0 1 24 102 V 26 A 10 10 0 0 1 34 16 Z" bx:shape="rect 24 16 80 96 0 10 10 1 12 12 0 10 10 0 10 10 2@b0d9d544"/>
+    <path d="M 91.707 16.713 L 103.343 28.384 L 91.707 28.384 L 91.707 16.713 Z" fill="#e0e0e0" style=""/>
     <g stroke="#d0d0d0" stroke-width="1.2">
       <line x1="36" y1="48" x2="92" y2="48"/>
       <line x1="36" y1="58" x2="92" y2="58"/>
@@ -43,21 +30,17 @@
       <line x1="36" y1="98" x2="92" y2="98"/>
     </g>
     <line x1="42" y1="28" x2="42" y2="108" stroke="#e57373" stroke-width="1.5"/>
-    <text x="46" y="40" font-family="Arial, sans-serif" font-size="7" fill="#616161" font-weight="bold">
+    <text x="23.054" y="46.068" font-family="Arial, sans-serif" font-size="7" fill="#616161" font-weight="bold" style="white-space: pre; font-size: 7px;">
       Gm  Cm  D  Gm
     </text>
   </g>
-
-  <!-- Guitare inclinée -->
   <g transform="rotate(-12 64 88)">
-    <!-- Manche -->
     <rect x="61" y="28" width="6" height="46" rx="2" ry="2" fill="#6D4C41"/>
     <rect x="59" y="22" width="10" height="8" rx="1.5" ry="1.5" fill="#5D4037"/>
     <circle cx="61" cy="24" r="1" fill="#BDBDBD"/>
     <circle cx="63" cy="24" r="1" fill="#BDBDBD"/>
     <circle cx="65" cy="24" r="1" fill="#BDBDBD"/>
     <circle cx="67" cy="24" r="1" fill="#BDBDBD"/>
-    <!-- Corps avec relief -->
     <ellipse cx="64" cy="88" rx="22" ry="26" fill="url(#guitarRelief)"/>
     <ellipse cx="64" cy="88" rx="18" ry="22" fill="#C49A77"/>
     <ellipse cx="64" cy="88" rx="18" ry="22" fill="url(#guitarShine)"/>
@@ -74,4 +57,3 @@
     </g>
   </g>
 </svg>
-
