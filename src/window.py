@@ -76,8 +76,6 @@ class TabsWindow(Adw.ApplicationWindow):
         # ===================================================
 
         # ========== CONFIG FILE ==========
-        self.cached_songs = None
-        self.cached_searchs = None
         self.favorites = None
 
         # Define configuration file path
@@ -97,14 +95,31 @@ class TabsWindow(Adw.ApplicationWindow):
                     # Clamp zoom size between 6.0 and 36.0
                     initial_zoom = max(6.0, min(loaded_size, 36.0))
                     self.favorites = config.get("favorites")
-                    self.cached_songs = config.get("cached_songs")
-                    self.cached_searchs = config.get("cached_searchs")
             except (IOError, json.JSONDecodeError, ValueError) as e:
                 print(f"Error loading config: {e}")
         else:
             print("no config file")
 
-        # ========== CACHED SONGS ==========
+        # ========== Cached FILE ==========
+        self.cached_songs = None
+        self.cached_searchs = None
+
+        # Define cache file path
+        self.cache_dir = os.environ.get("XDG_CACHE_HOME")
+        self.cache_file = os.path.join(self.cache_dir, "cache.json")
+
+        # Load cache from file
+        if os.path.exists(self.cache_file):
+            try:
+                with open(self.cache_file, 'r') as f:
+                    cache = json.load(f)
+                    self.cached_songs = cache.get("cached_songs")
+                    self.cached_searchs = cache.get("cached_searchs")
+            except (IOError, json.JSONDecodeError, ValueError) as e:
+                print(f"Error loading cache: {e}")
+        else:
+            print("no cache file")
+
         if not self.cached_songs :
             self.cached_songs = []
         if not self.cached_searchs :
@@ -691,14 +706,12 @@ class TabsWindow(Adw.ApplicationWindow):
         if self.animation_timeout_id is not None:
             GLib.source_remove(self.animation_timeout_id)
             self.animation_timeout_id = None
-
+        # Config
         try:
             os.makedirs(self.config_dir, exist_ok=True)
             config_data = {
                 "zoom_size": self._current_zoom_size,
-                "favorites": self.favorites,
-                "cached_songs": self.cached_songs,
-                "cached_searchs": self.cached_searchs
+                "favorites": self.favorites
             }
             with open(self.config_file, 'w') as f:
                 json.dump(config_data, f, indent=4)
@@ -706,6 +719,21 @@ class TabsWindow(Adw.ApplicationWindow):
             print(f"Could not save config: {e}")
         else:
             print("Config saved")
+        return False
+
+        # Cache
+        try:
+            os.makedirs(self.cache_dir, exist_ok=True)
+            cache_data = {
+                "cached_songs": self.cached_songs,
+                "cached_searchs": self.cached_searchs
+            }
+            with open(self.cache_file, 'w') as f:
+                json.dump(cache_data, f, indent=4)
+        except Exception as e:
+            print(f"Could not save cache{e}")
+        else:
+            print("Cache saved")
         return False
 
     def _set_lyrics_with_chord_colors(self, tab_content):
