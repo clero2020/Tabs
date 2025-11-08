@@ -370,7 +370,7 @@ class TabsWindow(Adw.ApplicationWindow):
         main_grid.set_margin_bottom(15)
         main_grid.set_margin_start(15)
         main_grid.set_margin_end(15)
-        main_grid.set_size_request(200, 50)
+        main_grid.set_size_request(2000, 500)
 
         # TITLE and ARTIST
         title_markup = f'<span size="large" weight="bold">{song["song"]}</span>'
