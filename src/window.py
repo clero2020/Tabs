@@ -719,8 +719,6 @@ class TabsWindow(Adw.ApplicationWindow):
             print(f"Could not save config: {e}")
         else:
             print("Config saved")
-        return False
-
         # Cache
         try:
             os.makedirs(self.cache_dir, exist_ok=True)
@@ -730,7 +728,6 @@ class TabsWindow(Adw.ApplicationWindow):
             }
             with open(self.cache_file, 'w') as f:
                 json.dump(cache_data, f, indent=4)
-            print("okayle")
         except Exception as e:
             print(f"Could not save cache{e}")
         else:
