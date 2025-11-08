@@ -458,7 +458,7 @@ class TabsWindow(Adw.ApplicationWindow):
             # 1. Assurez-vous d'être dans le bon enfant du leaflet
             if self.leaflet.get_visible_child() == self.chords_view_overlay:
                  # Revenir sur le stack avant de changer la page du stack
-                 self.leaflet.navigate_back()
+                 self.leaflet.go_back()
 
             self.stack.set_visible_child_name("results")
             # Update history
@@ -546,11 +546,8 @@ class TabsWindow(Adw.ApplicationWindow):
         self._push_history(["song", song_data])
 
     def on_favorites_clicked(self, button):
-        # MODIFICATION: Revenir en arrière sur le leaflet (pour sortir de la page des accords si nécessaire)
-        # On utilise navigate_back pour profiter de l'animation de retour
         if self.leaflet.get_visible_child() == self.chords_view_overlay:
-            self.leaflet.navigate_back()
-
+            self.leaflet.go_back()
         # Update history
         self._push_history(["favorites"])
 
@@ -561,7 +558,6 @@ class TabsWindow(Adw.ApplicationWindow):
                 self.favorites_list.remove(child)
             for song in self.favorites:
                 self._add_song_to_list(song, self.favorites_list)
-
 
     def on_back_clicked(self, button):
         """Action for the back button, navigating through history."""
@@ -579,7 +575,7 @@ class TabsWindow(Adw.ApplicationWindow):
         # 3. Render the destination state
         if state_type == "favorites":
             # MODIFICATION: Naviguer le leaflet en arrière (au cas où)
-            self.leaflet.navigate_back()
+            self.leaflet.go_back()
             self.stack.set_visible_child_name("favorites")
             # Reload favorites list (in case a favorite was added/removed on the song page)
             for child in list(self.favorites_list):
@@ -589,7 +585,7 @@ class TabsWindow(Adw.ApplicationWindow):
 
         elif state_type == "search":
             # MODIFICATION: Naviguer le leaflet en arrière (au cas où)
-            self.leaflet.navigate_back()
+            self.leaflet.go_back()
             songs = destination_state[1]
             self.stack.set_visible_child_name("results")
 
