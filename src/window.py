@@ -710,53 +710,45 @@ class TabsWindow(Adw.ApplicationWindow):
 
     def _set_lyrics_with_chord_colors(self, tab_content):
         """
-        Sets the text content and applies the 'chord_tag' to identified chords.
-        Cette version gère correctement l'alignement visuel des accords.
+        Version améliorée qui gère mieux l'alignement visuel des accords.
         """
         buffer = self.lyrics_view.get_buffer()
-
-        # 1. Reset the buffer
         buffer.set_text(tab_content)
 
-        # Get iterators for the start and end of the buffer
+        # Nettoyer les tags précédents
         start_iter = buffer.get_start_iter()
         end_iter = buffer.get_end_iter()
-
-        # Remove all instances of the chord_tag from the entire text
         buffer.remove_tag_by_name("chord_tag", start_iter, end_iter)
 
-        # 2. Traiter ligne par ligne pour un meilleur contrôle
-        lines = tab_content.split('\n')
-        current_offset = 0
+        # Pattern d'accords plus précis
+        chord_pattern = r'\b([A-G][b#]?(m|min|maj|sus|aug|dim|add|7|9|11|13)*(\/[A-G][b#]?)?)\b'
 
-        for line in lines:
-            # Pattern amélioré pour les accords
-            chord_pattern = r'([A-G][b#]?(m|min|maj|sus|aug|dim|add|7|9|11|13)*(\/[A-G][b#]?)?)'
+        # Chercher dans tout le texte
+        text = buffer.get_text(start_iter, end_iter, True)
 
-            # Trouver tous les accords dans cette ligne
-            for match in re.finditer(chord_pattern, line):
-                chord_text = match.group(1).strip()
+        for match in re.finditer(chord_pattern, text):
+            chord_text = match.group(1)
 
-                # Vérifier que c'est un accord plausible (pas juste une lettre seule dans un mot)
-                if (len(chord_text) >= 1 and
-                    not chord_text.islower() and
-                    # Éviter de capturer des lettres seules dans des mots
-                    (len(chord_text) > 1 or
-                     (match.start() == 0 or line[match.start()-1] in ' \t\n') or
-                     (match.end() == len(line) or line[match.end()] in ' \t\n'))):
+            # Validation supplémentaire : s'assurer que c'est bien un accord
+            # et pas une partie d'un mot
+            start_pos = match.start()
+            end_pos = match.end()
 
-                    start_index = current_offset + match.start()
-                    end_index = current_offset + match.end()
+            # Vérifier le contexte autour de l'accord
+            is_valid_chord = True
 
-                    # Get iterators by character index
-                    start_match_iter = buffer.get_iter_at_offset(start_index)
-                    end_match_iter = buffer.get_iter_at_offset(end_index)
+            # Si l'accord est au milieu d'un mot (entouré de lettres), c'est probablement une fausse détection
+            if (start_pos > 0 and text[start_pos-1].isalpha() and
+                not text[start_pos-1] in ' /'):
+                is_valid_chord = False
+            if (end_pos < len(text) and text[end_pos].isalpha() and
+                not text[end_pos] in ' /'):
+                is_valid_chord = False
 
-                    # Appliquer le tag
-                    buffer.apply_tag_by_name("chord_tag", start_match_iter, end_match_iter)
-
-            # Mettre à jour l'offset pour la ligne suivante (+1 pour le \n)
-            current_offset += len(line) + 1
+            if is_valid_chord and len(chord_text) > 0:
+                start_match_iter = buffer.get_iter_at_offset(start_pos)
+                end_match_iter = buffer.get_iter_at_offset(end_pos)
+                buffer.apply_tag_by_name("chord_tag", start_match_iter, end_match_iter)
 
     def on_fav_song_clicked(self, button):
         """Bascule l'état favori de la chanson actuellement affichée."""
