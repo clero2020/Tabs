@@ -386,9 +386,9 @@ class TabsWindow(Adw.ApplicationWindow):
         type_label.add_css_class("caption")
         main_grid.attach(type_label, 0, 1, 2, 1)
 
-        rating_label = Gtk.Label(label=f'Rating: {song.get("rating_full", "0")}', xalign=1)
+        rating_label = Gtk.Label(label=f'Rating: {song.get("rating_full", "0")}', xalign=0)
         rating_label.add_css_class("caption")
-        main_grid.attach(rating_label, 0, 1, 3, 1)
+        main_grid.attach(rating_label, 0, 2, 1, 1)
 
         # Horizontal box: grid + spacer + button
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
