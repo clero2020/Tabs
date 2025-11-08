@@ -384,16 +384,20 @@ class TabsWindow(Adw.ApplicationWindow):
         # TYPE and RATING aligned to the right
         type_label = Gtk.Label(label=f'Type: {song.get("type", "N/A")}', xalign=1)
         type_label.add_css_class("caption")
-        main_grid.attach(type_label, 0, 1, 1, 1)
+        main_grid.attach(type_label, 0, 2, 1, 1)
 
         rating_label = Gtk.Label(label=f'Rating: {song.get("rating_full", "0")}', xalign=1)
         rating_label.add_css_class("caption")
-        main_grid.attach(rating_label, 0, 1, 1, 1)
+        main_grid.attach(rating_label, 0, 3, 1, 1)
 
+        # Horizontal box: grid + spacer + button
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        hbox.append(main_grid)
 
         # Card and ListBoxRow
         card_bin = Adw.Bin()
         card_bin.add_css_class("card")
+        card_bin.set_child(hbox)
 
         row = Gtk.ListBoxRow()
         row.set_child(card_bin)
