@@ -384,11 +384,11 @@ class TabsWindow(Adw.ApplicationWindow):
         # TYPE and RATING aligned to the right
         type_label = Gtk.Label(label=f'Type: {song.get("type", "N/A")}', xalign=1)
         type_label.add_css_class("caption")
-        main_grid.attach(type_label, 0, 2, 1, 1)
+        main_grid.attach(type_label, 0, 1, 1, 1)
 
         rating_label = Gtk.Label(label=f'Rating: {song.get("rating_full", "0")}', xalign=1)
         rating_label.add_css_class("caption")
-        main_grid.attach(rating_label, 0, 3, 1, 1)
+        main_grid.attach(rating_label, 0, 1, 1, 1)
 
 
         # Card and ListBoxRow
