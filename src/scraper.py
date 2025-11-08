@@ -261,5 +261,5 @@ def get_song_details(url):
     # 2. Extraction des métadonnées par Regex (requiert le HTML brut)
     parser.set_metadata_from_raw_html(html)
     parser.clean_tab_content()
-
+    print(parser.details)
     return parser.details
