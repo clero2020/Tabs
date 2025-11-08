@@ -389,6 +389,13 @@ class TabsWindow(Adw.ApplicationWindow):
         title_markup = f'<span size="large" weight="bold">{song["song"]}</span>'
         title_label = Gtk.Label(label="", xalign=0)
         title_label.set_markup(title_markup)
+
+        title_label.set_line_wrap(True)
+        title_label.set_line_wrap_mode(Pango.WrapMode.WORD)
+        title_label.set_max_width_chars(20)  # Largeur maximale en caractères
+        title_label.set_ellipsize(Pango.EllipsizeMode.END)  # Ajouter "..." si le texte est trop long
+        title_label.set_justify(Gtk.Justification.LEFT)  # Alignement à gauche
+
         main_grid.attach(title_label, 0, 0, 2, 1)  # Prend 2 colonnes
 
         artist_label = Gtk.Label(label=song.get('artist', 'N/A'), xalign=0)
