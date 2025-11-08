@@ -5,7 +5,7 @@
 <h1 align="center">Tabs</h1>
 
 <p align="center">
-  Tabs is a chords and tabs app for Linux that scrapes data from <a href="https://www.ultimate-guitar.com/">Ultimate Guitar</a>.  
+  Tabs is a chords and tabs app for Linux that scrapes data from <a href=https://github.com/kmille/freetar>Freetar</a>.  
   The app is written in Python and built with GTK4 and Libadwaita.
 </p>
 
