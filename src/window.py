@@ -458,7 +458,7 @@ class TabsWindow(Adw.ApplicationWindow):
             # 1. Assurez-vous d'être dans le bon enfant du leaflet
             if self.leaflet.get_visible_child() == self.chords_view_overlay:
                  # Revenir sur le stack avant de changer la page du stack
-                 self.leaflet.go_back()
+                 self.leaflet.navigate(Adw.NavigationDirection.BACK)
 
             self.stack.set_visible_child_name("results")
             # Update history
@@ -547,7 +547,7 @@ class TabsWindow(Adw.ApplicationWindow):
 
     def on_favorites_clicked(self, button):
         if self.leaflet.get_visible_child() == self.chords_view_overlay:
-            self.leaflet.go_back()
+            self.leaflet.navigate(Adw.NavigationDirection.BACK)
         # Update history
         self._push_history(["favorites"])
 
@@ -575,7 +575,7 @@ class TabsWindow(Adw.ApplicationWindow):
         # 3. Render the destination state
         if state_type == "favorites":
             # MODIFICATION: Naviguer le leaflet en arrière (au cas où)
-            self.leaflet.go_back()
+            self.leaflet.navigate(Adw.NavigationDirection.BACK)
             self.stack.set_visible_child_name("favorites")
             # Reload favorites list (in case a favorite was added/removed on the song page)
             for child in list(self.favorites_list):
@@ -585,7 +585,7 @@ class TabsWindow(Adw.ApplicationWindow):
 
         elif state_type == "search":
             # MODIFICATION: Naviguer le leaflet en arrière (au cas où)
-            self.leaflet.go_back()
+            self.leaflet.navigate(Adw.NavigationDirection.BACK)
             songs = destination_state[1]
             self.stack.set_visible_child_name("results")
 
