@@ -394,7 +394,6 @@ class TabsWindow(Adw.ApplicationWindow):
         # Card and ListBoxRow
         card_bin = Adw.Bin()
         card_bin.add_css_class("card")
-        card_bin.set_child(hbox)
 
         row = Gtk.ListBoxRow()
         row.set_child(card_bin)
