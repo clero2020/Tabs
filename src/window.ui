@@ -14,7 +14,7 @@
               <object class="GtkSearchEntry" id="search_entry">
                 <property name="input-hints">no-emoji</property>
                 <property name="max-width-chars">50</property>
-                <property name="placeholder-text">Search a song</property>
+                <property name="placeholder-text">Find songs</property>
                 <property name="tooltip-text">Search for songs by title or artist</property>
               </object>
             </property>
@@ -199,7 +199,7 @@
                         </child>
                         <child>
                           <object class="GtkFrame" id="lyrics_frame">
-                            <property name="label">Lyrics &amp; Chords</property>
+                            <property name="label">Chords/Tabs</property>
                             <property name="vexpand">true</property>
                             <child>
                               <object class="GtkTextView" id="lyrics_view">
