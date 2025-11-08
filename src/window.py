@@ -384,37 +384,12 @@ class TabsWindow(Adw.ApplicationWindow):
         # TYPE and RATING aligned to the right
         type_label = Gtk.Label(label=f'Type: {song.get("type", "N/A")}', xalign=1)
         type_label.add_css_class("caption")
-        main_grid.attach(type_label, 1, 0, 1, 1)
+        main_grid.attach(type_label, 0, 2, 1, 1)
 
         rating_label = Gtk.Label(label=f'Rating: {song.get("rating_full", "0")}', xalign=1)
         rating_label.add_css_class("caption")
-        main_grid.attach(rating_label, 1, 1, 1, 1)
+        main_grid.attach(rating_label, 0, 3, 1, 1)
 
-        # Favorite icon setup
-        icon_name = "starred-symbolic" if song in self.favorites else "non-starred-symbolic"
-        fav_icon = Gtk.Image.new_from_icon_name(icon_name)
-
-        # Favorite button
-        fav_button = Gtk.Button()
-        fav_button.set_tooltip_text("Toggle favorite")
-        fav_button.set_child(fav_icon)
-        fav_button.set_valign(Gtk.Align.CENTER)
-        fav_button.set_margin_end(10)
-
-        # Store song data in button
-        fav_button.song_data = song
-        fav_button.connect("clicked", self.on_fav_clicked, song)
-
-        # Horizontal box: grid + spacer + button
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        hbox.append(main_grid)
-
-        # Spacer to push the button to the right
-        spacer = Gtk.Box()
-        spacer.set_hexpand(True)
-        hbox.append(spacer)
-
-        hbox.append(fav_button)
 
         # Card and ListBoxRow
         card_bin = Adw.Bin()
