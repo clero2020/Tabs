@@ -106,7 +106,6 @@ class TabsWindow(Adw.ApplicationWindow):
 
         # Define cache file path
         self.cache_dir = os.environ.get("XDG_CACHE_HOME")
-        print(self.cache_dir )
         self.cache_file = os.path.join(self.cache_dir, "cache.json")
 
         # Load cache from file
@@ -731,6 +730,7 @@ class TabsWindow(Adw.ApplicationWindow):
             }
             with open(self.cache_file, 'w') as f:
                 json.dump(cache_data, f, indent=4)
+            print("okayle")
         except Exception as e:
             print(f"Could not save cache{e}")
         else:
