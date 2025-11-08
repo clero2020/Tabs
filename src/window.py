@@ -370,30 +370,34 @@ class TabsWindow(Adw.ApplicationWindow):
         main_grid.set_margin_bottom(15)
         main_grid.set_margin_start(15)
         main_grid.set_margin_end(15)
-        main_grid.set_size_request(2000, 500)
 
         # TITLE and ARTIST
         title_markup = f'<span size="large" weight="bold">{song["song"]}</span>'
         title_label = Gtk.Label(label="", xalign=0)
         title_label.set_markup(title_markup)
-        main_grid.attach(title_label, 0, 0, 1, 1)
+        main_grid.attach(title_label, 0, 0, 2, 1)  # Prend 2 colonnes
 
         artist_label = Gtk.Label(label=song.get('artist', 'N/A'), xalign=0)
         artist_label.add_css_class("body")
         main_grid.attach(artist_label, 0, 1, 1, 1)
 
         # TYPE and RATING aligned to the right
-        type_label = Gtk.Label(label=f'Type: {song.get("type", "N/A")}', xalign=1)
+        type_label = Gtk.Label(label=f'Type: {song.get("type", "N/A")}', xalign=0)
         type_label.add_css_class("caption")
-        main_grid.attach(type_label, 0, 1, 2, 1)
+        main_grid.attach(type_label, 0, 2, 1, 1)
 
-        rating_label = Gtk.Label(label=f'Rating: {song.get("rating_full", "0")}', xalign=0)
+        rating_label = Gtk.Label(label=f'Rating: {song.get("rating_full", "0")}', xalign=1)
         rating_label.add_css_class("caption")
-        main_grid.attach(rating_label, 0, 2, 1, 1)
+        main_grid.attach(rating_label, 1, 2, 1, 1)
 
         # Horizontal box: grid + spacer + button
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         hbox.append(main_grid)
+
+        # Spacer to push content to fill space
+        spacer = Gtk.Box()
+        spacer.set_hexpand(True)
+        hbox.append(spacer)
 
         # Card and ListBoxRow
         card_bin = Adw.Bin()
@@ -405,7 +409,6 @@ class TabsWindow(Adw.ApplicationWindow):
         row.url = song["song_url"]
 
         listbox.append(row)
-
     # -----------------------
     # NAVIGATION HANDLERS
     # -----------------------
