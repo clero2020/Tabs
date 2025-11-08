@@ -52,7 +52,7 @@
           <object class="AdwLeaflet" id="leaflet">
             <property name="can-navigate-back">True</property>
             <property name="transition-type">over</property>
-            <property name="fold-threshold-policy">always</property>
+            <property name="can-unfold">False</property>
             <child>
               <object class="GtkStack" id="stack">
                 <property name="transition-duration">300</property>
