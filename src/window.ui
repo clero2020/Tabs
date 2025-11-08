@@ -198,7 +198,7 @@
                               <object class="GtkTextView" id="lyrics_view">
                                 <property name="editable">false</property>
                                 <property name="vexpand">true</property>
-                                <property name="wrap-mode">word</property>
+                                <property name="wrap-mode">word-char</property>
                                 <property name="margin-bottom">10</property>
                                 <property name="margin-end">10</property>
                                 <property name="margin-start">10</property>
