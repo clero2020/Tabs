@@ -1,5 +1,5 @@
 {
-    "id" : "org.clero.tabs",
+    "id" : "io.github.clero2020.tabs",
     "runtime" : "org.gnome.Platform",
     "runtime-version" : "49",
     "sdk" : "org.gnome.Sdk",
@@ -39,15 +39,15 @@
 		"buildsystem": "simple",
 		"build-commands": [
 		    "mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/",
-		    "install -Dm644 data/icons/hicolor/scalable/apps/org.clero.tabs.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/",
+		    "install -Dm644 data/icons/hicolor/scalable/apps/io.github.clero2020.tabs.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/",
 		    "mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/symbolic/apps/",
-		    "install -Dm644 data/icons/hicolor/symbolic/apps/org.clero.tabs-symbolic.svg ${FLATPAK_DEST}/share/icons/hicolor/symbolic/apps/",
-		    "install -Dm644 data/org.clero.tabs.desktop.in ${FLATPAK_DEST}/share/applications/"
+		    "install -Dm644 data/icons/hicolor/symbolic/apps/io.github.clero2020.tabs-symbolic.svg ${FLATPAK_DEST}/share/icons/hicolor/symbolic/apps/",
+		    "install -Dm644 data/io.github.clero2020.tabs.desktop.in ${FLATPAK_DEST}/share/applications/"
 		],
 		"sources": [
-		    { "type": "file", "path": "org.clero.tabs.svg" },
-		    { "type": "file", "path": "org.clero.tabs-symbolic.svg" },
-		    { "type": "file", "path": "org.clero.tabs.desktop" }
+		    { "type": "file", "path": "io.github.clero2020.tabs.svg" },
+		    { "type": "file", "path": "io.github.clero2020.tabs-symbolic.svg" },
+		    { "type": "file", "path": "io.github.clero2020.tabs.desktop" }
 		]
 	    }
 	]

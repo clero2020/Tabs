@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/clero2020/Tabs/97d393bbf3038c4f1e6b4f06700244ad5bb64d4a/data/icons/hicolor/scalable/apps/org.clero.tabs.svg">
+  <img src="https://raw.githubusercontent.com/clero2020/Tabs/97d393bbf3038c4f1e6b4f06700244ad5bb64d4a/data/icons/hicolor/scalable/apps/io.github.clero2020.tabs.svg">
 </p>
 
 <h1 align="center">Tabs</h1>

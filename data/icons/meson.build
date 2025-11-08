@@ -1,4 +1,4 @@
-application_id = 'org.clero.tabs'
+application_id = 'io.github.clero2020.tabs'
 
 scalable_dir = 'hicolor' / 'scalable' / 'apps'
 install_data(

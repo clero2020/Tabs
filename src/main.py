@@ -31,7 +31,7 @@ class TabsApplication(Adw.Application):
 
     def __init__(self):
         super().__init__(
-            application_id='org.clero.tabs',
+            application_id='io.github.clero2020.tabs',
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
             resource_base_path='/org/clero/tabs'
         )
@@ -52,7 +52,7 @@ class TabsApplication(Adw.Application):
         """Callback pour l'action app.about."""
         about = Adw.AboutDialog(
             application_name='Tabs',
-            application_icon='org.clero.tabs',
+            application_icon='io.github.clero2020.tabs',
             developer_name='Clero',
             version='0.1.1',
             developers=['Clero'],

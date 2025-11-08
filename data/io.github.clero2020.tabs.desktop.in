@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Tabs
 Exec=tabs
-Icon=org.clero.tabs
+Icon=io.github.clero2020.tabs
 Terminal=false
 Type=Application
 Categories=Utility;

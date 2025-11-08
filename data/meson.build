@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
-        input: 'org.clero.tabs.desktop.in',
-       output: 'org.clero.tabs.desktop',
+        input: 'io.github.clero2020.tabs.desktop.in',
+       output: 'io.github.clero2020.tabs.desktop',
          type: 'desktop',
        po_dir: '../po',
       install: true,
@@ -13,8 +13,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = i18n.merge_file(
-        input: 'org.clero.tabs.metainfo.xml.in',
-       output: 'org.clero.tabs.metainfo.xml',
+        input: 'io.github.clero2020.tabs.metainfo.xml.in',
+       output: 'io.github.clero2020.tabs.metainfo.xml',
        po_dir: '../po',
       install: true,
   install_dir: get_option('datadir') / 'metainfo'
@@ -24,7 +24,7 @@ appstreamcli = find_program('appstreamcli', required: false, disabler: true)
 test('Validate appstream file', appstreamcli,
      args: ['validate', '--no-net', '--explain', appstream_file])
 
-install_data('org.clero.tabs.gschema.xml',
+install_data('io.github.clero2020.tabs.gschema.xml',
   install_dir: get_option('datadir') / 'glib-2.0' / 'schemas'
 )
 
@@ -37,8 +37,8 @@ test('Validate schema file',
 service_conf = configuration_data()
 service_conf.set('bindir', get_option('prefix') / get_option('bindir'))
 configure_file(
-  input: 'org.clero.tabs.service.in',
-  output: 'org.clero.tabs.service',
+  input: 'io.github.clero2020.tabs.service.in',
+  output: 'io.github.clero2020.tabs.service',
   configuration: service_conf,
   install_dir: get_option('datadir') / 'dbus-1' / 'services'
 )
