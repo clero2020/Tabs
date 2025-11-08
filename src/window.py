@@ -229,13 +229,6 @@ class TabsWindow(Adw.ApplicationWindow):
 
         # Opacité initiale
         self.controls_box.set_opacity(1.0)
-
-        # ========== RESPONSIVE DESIGN ==========
-        self.connect("notify::default-width", self.on_window_resized)
-        self._current_width = self.get_default_width()
-
-        # Appliquer le style initial
-        self.update_responsive_layout()
     # -----------------------
     # ANIMATION D'OPACITÉ
     # -----------------------
@@ -806,42 +799,3 @@ class TabsWindow(Adw.ApplicationWindow):
             # S'assurer que l'opacité est correcte
             if self.scroll_timeout_id is None:
                 self.start_opacity_animation(1.0)  # Pas de défilement = pleine opacité
-
-
-    def on_window_resized(self, window, pspec):
-        """Met à jour le layout quand la fenêtre est redimensionnée"""
-        new_width = self.get_width()
-        if new_width != self._current_width:
-            self._current_width = new_width
-            self.update_responsive_layout()
-
-    def update_responsive_layout(self):
-        """Adapte le layout en fonction de la largeur de la fenêtre"""
-        is_narrow = self._current_width < 600  # Seuil pour écran étroit
-
-        # Ajuster les marges
-        if hasattr(self, 'main_box'):
-            if is_narrow:
-                self.main_box.set_margin_start(5)
-                self.main_box.set_margin_end(5)
-                self.main_box.set_margin_top(5)
-                self.main_box.set_margin_bottom(5)
-            else:
-                self.main_box.set_margin_start(10)
-                self.main_box.set_margin_end(10)
-                self.main_box.set_margin_top(10)
-                self.main_box.set_margin_bottom(10)
-
-        # Ajuster la boîte de contrôle de défilement
-        if hasattr(self, 'controls_box'):
-            if is_narrow:
-                self.controls_box.set_margin_end(10)
-                self.controls_box.set_margin_bottom(10)
-                # Réduire la taille des boutons sur écran étroit
-                self.play_pause_button.set_height_request(40)
-                self.play_pause_button.set_width_request(40)
-            else:
-                self.controls_box.set_margin_end(20)
-                self.controls_box.set_margin_bottom(20)
-                self.play_pause_button.set_height_request(48)
-                self.play_pause_button.set_width_request(48)
