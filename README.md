@@ -13,10 +13,10 @@
 
 ## Screenshots 📸
 ### Homepage/Favorites
-<img src="">
+<img src="https://github.com/clero2020/Tabs/blob/master/screenshots/Favorites_homepage.png?raw=true">
 
 ### Search
-<img src="">
+<img src="https://github.com/clero2020/Tabs/blob/master/screenshots/Search.png?raw=true">
 
 ### Tabs/Chords
-<img src="">
+<img src="https://github.com/clero2020/Tabs/blob/master/screenshots/Tabs_chords.png?raw=true">
