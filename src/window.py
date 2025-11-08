@@ -710,7 +710,7 @@ class TabsWindow(Adw.ApplicationWindow):
 
     def _set_lyrics_with_chord_colors(self, tab_content):
         """
-        Version améliorée qui gère mieux l'alignement visuel des accords.
+        Traite les accords en considérant la structure des tablatures.
         """
         buffer = self.lyrics_view.get_buffer()
         buffer.set_text(tab_content)
@@ -720,35 +720,47 @@ class TabsWindow(Adw.ApplicationWindow):
         end_iter = buffer.get_end_iter()
         buffer.remove_tag_by_name("chord_tag", start_iter, end_iter)
 
-        # Pattern d'accords plus précis
-        chord_pattern = r'\b([A-G][b#]?(m|min|maj|sus|aug|dim|add|7|9|11|13)*(\/[A-G][b#]?)?)\b'
+        # Obtenir tout le texte
+        full_text = buffer.get_text(start_iter, end_iter, True)
 
-        # Chercher dans tout le texte
-        text = buffer.get_text(start_iter, end_iter, True)
+        # Pattern pour détecter les lignes d'accords
+        # Elles contiennent principalement des accords séparés par des espaces
+        lines = full_text.split('\n')
+        current_offset = 0
 
-        for match in re.finditer(chord_pattern, text):
-            chord_text = match.group(1)
+        for line in lines:
+            # Une ligne est considérée comme une ligne d'accords si :
+            # - Elle contient au moins un accord
+            # - La majorité du contenu sont des accords ou des espaces
+            chord_count = 0
+            non_space_chars = 0
 
-            # Validation supplémentaire : s'assurer que c'est bien un accord
-            # et pas une partie d'un mot
-            start_pos = match.start()
-            end_pos = match.end()
+            # Compter les accords et caractères non-espace
+            for match in re.finditer(r'[A-G][b#]?(?:m|min|maj|sus|aug|dim|add|[0-9]+\/?)*', line):
+                chord_text = match.group()
+                # Vérifier que c'est un accord valide (pas une partie d'un mot)
+                start, end = match.span()
+                if (start == 0 or line[start-1] in ' \t') and (end == len(line) or line[end] in ' \t'):
+                    chord_count += 1
 
-            # Vérifier le contexte autour de l'accord
-            is_valid_chord = True
+            non_space_chars = len([c for c in line if c not in ' \t'])
 
-            # Si l'accord est au milieu d'un mot (entouré de lettres), c'est probablement une fausse détection
-            if (start_pos > 0 and text[start_pos-1].isalpha() and
-                not text[start_pos-1] in ' /'):
-                is_valid_chord = False
-            if (end_pos < len(text) and text[end_pos].isalpha() and
-                not text[end_pos] in ' /'):
-                is_valid_chord = False
+            # Si c'est une ligne d'accords, colorier tous les accords
+            if chord_count > 0 and chord_count * 3 >= non_space_chars:  # Au moins 1/3 de la ligne sont des accords
+                for match in re.finditer(r'([A-G][b#]?(?:m|min|maj|sus|aug|dim|add|[0-9]+\/?)*)', line):
+                    chord_text = match.group(1)
+                    start, end = match.span()
 
-            if is_valid_chord and len(chord_text) > 0:
-                start_match_iter = buffer.get_iter_at_offset(start_pos)
-                end_match_iter = buffer.get_iter_at_offset(end_pos)
-                buffer.apply_tag_by_name("chord_tag", start_match_iter, end_match_iter)
+                    # Validation du contexte
+                    if (start == 0 or line[start-1] in ' \t') and (end == len(line) or line[end] in ' \t'):
+                        start_abs = current_offset + start
+                        end_abs = current_offset + end
+
+                        start_iter = buffer.get_iter_at_offset(start_abs)
+                        end_iter = buffer.get_iter_at_offset(end_abs)
+                        buffer.apply_tag_by_name("chord_tag", start_iter, end_iter)
+
+            current_offset += len(line) + 1  # +1 pour le \n
 
     def on_fav_song_clicked(self, button):
         """Bascule l'état favori de la chanson actuellement affichée."""
