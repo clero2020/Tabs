@@ -394,7 +394,6 @@ class TabsWindow(Adw.ApplicationWindow):
         title_label.set_wrap(True)  # set_wrap au lieu de set_line_wrap
         title_label.set_wrap_mode(Pango.WrapMode.WORD)  # set_wrap_mode au lieu de set_line_wrap_mode
         title_label.set_max_width_chars(20)
-        title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_justify(Gtk.Justification.LEFT)
         title_label.set_hexpand(True)
 
